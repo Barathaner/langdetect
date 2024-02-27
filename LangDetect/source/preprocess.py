@@ -1,8 +1,5 @@
-import nltk
+import pandas as pd
 
-
-
-#Tokenizer function. You can add here different preprocesses.
 def preprocess(sentence, labels):
     '''
     Task: Given a sentence apply all the required preprocessing steps
@@ -12,12 +9,22 @@ def preprocess(sentence, labels):
     Input: Sentence in string format
     Output: Preprocessed sentence either as a list or a string
     '''
+    
+    
+    
+    if isinstance(sentence, pd.Series):
+        sentence = sentence.iloc[0]  # Annahme, dass die Serie nur einen Satz enthält
+    
+    # Initialisierung einer leeren String-Variable für die Sammlung der Ausgabe
+    output = ''
+    
+    # Iteration über jeden Charakter im Satz
+    
+    for i in range(0,5):
+        chara = sentence[i]
+        if ord(chara) > 1000:
+            print(f"Character {chara} is  an asian character")
 
-    # Split Sentence via whitespace, punctutation, abbreviations. asian languages dont split words by whitespace, make heuristic via charatcers. 
-    # Place your code here
-    # Keep in mind that sentence splitting affectes the number of sentences
-    # and therefore, you should replicate labels to match.
-    return sentence,labels
 
-
-
+    # Rückgabe des ursprünglichen Satzes und Labels ohne Änderung
+    return sentence, labels
