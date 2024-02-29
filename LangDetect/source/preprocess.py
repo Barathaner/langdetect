@@ -97,6 +97,9 @@ def preprocess(sentence, labels):
             tokens = tokenize_thai(processed_sentence)
         elif labels[i] == 'Korean':
             tokens = tokenize_korean(processed_sentence)
+        elif labels[i] == 'Latin':
+            cltk_doc = cltk_nlp.analyze(text=processed_sentence)
+            tokens=cltk_doc.tokens
         # search for more tokenizers for the following languages or implement your own
         elif labels[i] == 'Tamil':
             tokens=processed_sentence.split()
@@ -114,9 +117,6 @@ def preprocess(sentence, labels):
             tokens=processed_sentence.split()
         elif labels[i] == 'Indonesian':
             tokens=processed_sentence.split()
-        elif labels[i] == 'Latin':
-            cltk_doc = cltk_nlp.analyze(text=processed_sentence)
-            tokens=cltk_doc.tokens
         else:
             lang = labels[i].lower()
             # typo in the dataset
