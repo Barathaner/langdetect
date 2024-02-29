@@ -1,30 +1,67 @@
 import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+import re
+import MeCab
+import pythainlp
+from konlpy.tag import Okt  # Okt ist ein Tokenizer für Koreanisch
+
+import jieba    
+
+# Diese Funktion bleibt unverändert
+def tokenize_japanese(text):
+    tokenizer = MeCab.Tagger()
+    tokens = []
+    node = tokenizer.parseToNode(text)
+    while node:
+        if node.surface != "":
+            tokens.append(node.surface)
+        node = node.next
+    return tokens
+
+# Verbesserte Tokenisierung für Chinesisch
+def tokenize_chinese(text):
+    # Entfernen von Sonderzeichen vor der Tokenisierung
+    tokens = jieba.cut(text)
+    return list(tokens)
+
+def tokenize_thai(text):
+    # Verwende pythainlp zum Tokenisieren des Thai-Textes
+    tokens = pythainlp.tokenize.word_tokenize(text)
+    return tokens
+
+def tokenize_korean(text):
+    # Verwende konlpy's Okt zum Tokenisieren des Koreanisch-Textes
+    okt = Okt()
+    tokens = okt.morphs(text)
+    return tokens
+
 
 def preprocess(sentence, labels):
-    '''
-    Task: Given a sentence apply all the required preprocessing steps
-    to compute train our classifier, such as sentence splitting, 
-    tokenization or sentence splitting.
+    corpus = []
+    sentence = sentence.to_list()
+    labels = labels.to_list()
 
-    Input: Sentence in string format
-    Output: Preprocessed sentence either as a list or a string
-    '''
-    
-    
-    
-    if isinstance(sentence, pd.Series):
-        sentence = sentence.iloc[0]  # Annahme, dass die Serie nur einen Satz enthält
-    
-    # Initialisierung einer leeren String-Variable für die Sammlung der Ausgabe
-    output = ''
-    
-    # Iteration über jeden Charakter im Satz
-    
-    for i in range(0,5):
-        chara = sentence[i]
-        if ord(chara) > 1000:
-            print(f"Character {chara} is  an asian character")
+    for i in range(len(sentence)):
+        # Entfernen von Sonderzeichen und Umwandlung in Kleinbuchstaben
+        processed_sentence = sentence[i]
 
+        if labels[i] == 'Chinese':
+            tokens = tokenize_chinese(processed_sentence)
+        elif labels[i] == 'Japanese':
+            tokens = tokenize_japanese(processed_sentence)
+        elif labels[i] == 'Thai':
+            tokens = tokenize_thai(processed_sentence)
+        elif labels[i] == 'Korean':
+            tokens = tokenize_korean(processed_sentence)
+        else:
+            # Standardverhalten für andere Sprachen
+            tokens = processed_sentence.split()
+        
+        # Wiederzusammenfügen der tokenisierten Wörter zu einem Satz
+        processed_sentence = ' '.join(tokens)
+        corpus.append(processed_sentence)
 
-    # Rückgabe des ursprünglichen Satzes und Labels ohne Änderung
+    sentence = pd.Series(corpus)
+    labels = pd.Series(labels)
     return sentence, labels
