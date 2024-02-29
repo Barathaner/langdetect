@@ -4,8 +4,7 @@ import MeCab
 import pythainlp
 from konlpy.tag import Okt  # Okt is a tokenizer for Korean.
 import jieba
-from cltk import NLP
-cltk_nlp = NLP(language="lat")
+import random
 nltk.download('punkt')
 def tokenize_japanese(text):
     """
@@ -86,45 +85,62 @@ def preprocess(sentence, labels):
     labels = labels.to_list()
     
 
+    chinesecount = 0
+    japanesecount = 0
+    thaicount = 0
+    koreancount = 0
+    othercount = 0
     for i in range(len(sentence)):
         processed_sentence = sentence[i]
-
-        if labels[i] == 'Chinese':
-            tokens = tokenize_chinese(processed_sentence)
-        elif labels[i] == 'Japanese':
-            tokens = tokenize_japanese(processed_sentence)
-        elif labels[i] == 'Thai':
+        chinesecount = 0
+        japanesecount = 0
+        thaicount = 0
+        koreancount = 0
+        othercount = 0
+        #0.2 is the percentage of the sentence that will be randomly selected to determine the language
+        randcount = int(len(processed_sentence) *0.2)
+        randchars = random.sample(range(0, len(processed_sentence)), randcount)
+        for randchar in randchars:
+            #chinese Basic CJK Unified Ideographs Block and CJK Unified Ideographs Extension A Block
+            if 19968 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 40959  or 13312 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 19903:
+                chinesecount += 1
+                #Hiragana and Katakana
+            elif 12352 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 12447 or 12448 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 12543 :
+                japanesecount += 1
+                #thai
+            elif 3584 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 3711:
+                thaicount += 1
+                #Hangul Syllables: 44032-55215 Hangul Jamo: 4352-4607 Hangul Compatibility Jamo: 43360-43391 Hangul Jamo Extended-B:  55216 bis 55295
+            elif 44032 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 55215 or 4352 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 4607 or 43360 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 43391 or 55216 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 55295:
+                koreancount += 1
+            else:
+                othercount += 1
+        
+        if max(thaicount, japanesecount, chinesecount, koreancount,othercount) == thaicount:
             tokens = tokenize_thai(processed_sentence)
-        elif labels[i] == 'Korean':
+        elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == japanesecount:
+            tokens = tokenize_japanese(processed_sentence)
+        elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == chinesecount:
+            tokens = tokenize_chinese(processed_sentence)
+        elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == koreancount:
             tokens = tokenize_korean(processed_sentence)
-        elif labels[i] == 'Latin':
-            cltk_doc = cltk_nlp.analyze(text=processed_sentence)
-            tokens=cltk_doc.tokens
-        # search for more tokenizers for the following languages or implement your own
-        elif labels[i] == 'Tamil':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Urdu':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Persian':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Pushto':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Romanian':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Arabic':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Hindi':
-            tokens=processed_sentence.split()
-        elif labels[i] == 'Indonesian':
-            tokens=processed_sentence.split()
         else:
-            lang = labels[i].lower()
-            # typo in the dataset
-            if lang == 'portugese':
-                lang = 'portuguese'
-            tokens = nltk.tokenize.word_tokenize(text=processed_sentence,language=lang)
+            #other languages are quiet similar to english so we can use the nltk tokenizer
+            tokens = nltk.word_tokenize(processed_sentence)
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+        # this is stupid but it works. normally we would need to add new labels for each word in the sentence but we are not doing that here
+        # Keep in mind that sentence splitting affectes the number of sentences
+        # and therefore, you should replicate labels to match. like this.... but for some strange reason it performs really bad.... (maybe the special chcaracters)
+        #   for k in range(len(tokens)):
+        #    corpus.append(tokens[k])
+        #    labelcorpus.append(labels[i])
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
         
         processed_sentence = ' '.join(tokens)
+
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+
         corpus.append(processed_sentence)
 
     sentence = pd.Series(corpus)
