@@ -9,7 +9,7 @@ import scipy
 import numpy as np
 import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D  # Für 3D-Plots
-
+from collections import Counter
 
 def compute_features(X_train, 
                      X_test, 
