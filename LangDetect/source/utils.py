@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 import scipy
 import numpy as np
 import pandas as pd
-
+from mpl_toolkits.mplot3d import Axes3D  # Für 3D-Plots
 
 
 def compute_features(X_train, 
@@ -136,6 +136,52 @@ def plot_Confusion_Matrix(y_test, y_predict, color="Blues"):
     plt.show()
 
 
+
+def plotPCA3D(x_train, x_test, y_test, langs):
+    '''
+    Task: Given train features train a PCA dimensionality reduction
+          (3 dimensions) and plot the test set according to its labels.
+    
+    Input: x_train -> Train features
+           x_test -> Test features
+           y_test -> Test labels
+           langs -> Set of language labels
+
+    Output: Print the amount of variance explained by the 3 first principal components.
+            Plot PCA results by language in 3D
+    '''
+    pca = PCA(n_components=3)
+    pca.fit(toNumpyArray(x_train))
+    pca_test = pca.transform(toNumpyArray(x_test))
+    print('Variance explained by PCA:', pca.explained_variance_ratio_)
+    y_test_list = np.asarray(y_test.tolist())
+
+    # Erzeuge eine 3D-Figur
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    base_cmap_b = plt.cm.get_cmap('tab20b', 20)
+    base_cmap_c = plt.cm.get_cmap('tab20c', 20)
+    colors_b = [base_cmap_b(i) for i in range(20)]
+    colors_c = [base_cmap_c(i) for i in range(20)]
+    colors = colors_b + colors_c  # Kombiniere beide Paletten
+
+    for idx, lang in enumerate(langs):
+        pca_x = pca_test[y_test_list == lang, 0]
+        pca_y = pca_test[y_test_list == lang, 1]
+        pca_z = pca_test[y_test_list == lang, 2]  # Dritte Dimension
+        ax.scatter(pca_x, pca_y, pca_z, color=colors[idx % len(colors)], label=lang)
+
+    ax.legend(loc="best", bbox_to_anchor=(1.05, 1))
+    ax.set_xlabel('Principal Component 1')
+    ax.set_ylabel('Principal Component 2')
+    ax.set_zlabel('Principal Component 3')
+    plt.title('3D PCA of Test Set by Language')
+    plt.tight_layout()
+    plt.show()
+
+
+
 def plotPCA(x_train, x_test,y_test, langs):
     '''
     Task: Given train features train a PCA dimensionality reduction
@@ -155,12 +201,22 @@ def plotPCA(x_train, x_test,y_test, langs):
     pca_test = pca.transform(toNumpyArray(x_test))
     print('Variance explained by PCA:', pca.explained_variance_ratio_)
     y_test_list = np.asarray(y_test.tolist())
-    for lang in langs:
-        pca_x = np.asarray([i[0] for i in pca_test])[y_test_list == lang]
-        pca_y = np.asarray([i[1] for i in pca_test])[y_test_list == lang]
-        plt.scatter(pca_x,pca_y, label=lang)
-    plt.legend(loc="upper left")
+
+    base_cmap_b = plt.cm.get_cmap('tab20b', 20)
+    base_cmap_c = plt.cm.get_cmap('tab20c', 20)
+    colors_b = [base_cmap_b(i) for i in range(20)]
+    colors_c = [base_cmap_c(i) for i in range(20)]
+    colors = colors_b + colors_c  # Kombiniere beide Paletten
+
+    for idx, lang in enumerate(langs):
+        pca_x = pca_test[y_test_list == lang, 0]
+        pca_y = pca_test[y_test_list == lang, 1]
+        # Verwende den Modulo-Operator, um sicherzustellen, dass der Index innerhalb der Länge der Farbliste bleibt
+        plt.scatter(pca_x, pca_y, color=colors[idx % len(colors)], label=lang)
+    
+    plt.legend(loc="best", bbox_to_anchor=(1, 1))
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
+    plt.title('PCA of Test Set by Language')
+    plt.tight_layout()
     plt.show()
-
-
-
