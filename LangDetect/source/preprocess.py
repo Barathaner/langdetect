@@ -6,6 +6,30 @@ from konlpy.tag import Okt  # Okt is a tokenizer for Korean.
 import jieba
 import random
 nltk.download('punkt')
+
+def entferne_sonderzeichen(satz):
+    # Erweiterte Funktion, die prüft, ob ein Zeichen ein Sonderzeichen ist
+    def ist_sonderzeichen(char):
+        codepoint = ord(char)
+        # Erweiterte Auswahl von Unicode-Blöcken für Sonderzeichen, inklusive einiger Interpunktionszeichen und Symbole
+        if (0x20A0 <= codepoint <= 0x20CF) or \
+           (0x2200 <= codepoint <= 0x22FF) or \
+           (0x2300 <= codepoint <= 0x23FF) or \
+           (0x25A0 <= codepoint <= 0x25FF) or \
+           (0x2600 <= codepoint <= 0x26FF) or \
+           (0x2700 <= codepoint <= 0x27BF) or \
+           (0x2B50 <= codepoint <= 0x2B59) or \
+           (0x2000 <= codepoint <= 0x206F) or \
+           (0x2E00 <= codepoint <= 0x2E7F) or \
+           (0x3000 <= codepoint <= 0x303F) or \
+           (0x1F300 <= codepoint <= 0x1F5FF):  # Emojis und andere Piktogramme
+            return True
+        return False
+    
+    # Entferne alle Zeichen aus dem Satz, die als Sonderzeichen identifiziert wurden
+    bereinigter_satz = ''.join(char for char in satz if not ist_sonderzeichen(char))
+    return bereinigter_satz
+
 def tokenize_japanese(text):
     """
     Tokenizes Japanese text using MeCab.
@@ -91,7 +115,7 @@ def preprocess(sentence, labels):
     koreancount = 0
     othercount = 0
     for i in range(len(sentence)):
-        processed_sentence = sentence[i]
+        processed_sentence =  entferne_sonderzeichen(str(sentence[i].lower())) #entferne_sonderzeichen(sentence[i])
         chinesecount = 0
         japanesecount = 0
         thaicount = 0
@@ -142,6 +166,8 @@ def preprocess(sentence, labels):
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 
         corpus.append(processed_sentence)
+        
+    
 
     sentence = pd.Series(corpus)
     labels = pd.Series(labels)
