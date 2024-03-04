@@ -15,11 +15,11 @@ def stem_text(text, stemmer):
     stemmed_words = [stemmer.stem(word) for word in text]
     return stemmed_words
 
-def entferne_sonderzeichen(satz):
-    # Erweiterte Funktion, die prüft, ob ein Zeichen ein Sonderzeichen ist
-    def ist_sonderzeichen(char):
+def remove_special_characters(sentence):
+    # Extended function that checks if a character is a special character
+    def is_special_character(char):
         codepoint = ord(char)
-        # Erweiterte Auswahl von Unicode-Blöcken für Sonderzeichen, inklusive einiger Interpunktionszeichen und Symbole
+        # Extended selection of Unicode blocks for special characters, including some punctuation marks and symbols
         if (0x20A0 <= codepoint <= 0x20CF) or \
            (0x2200 <= codepoint <= 0x22FF) or \
            (0x2300 <= codepoint <= 0x23FF) or \
@@ -30,24 +30,17 @@ def entferne_sonderzeichen(satz):
            (0x2000 <= codepoint <= 0x206F) or \
            (0x2E00 <= codepoint <= 0x2E7F) or \
            (0x3000 <= codepoint <= 0x303F) or \
-           (0x1F300 <= codepoint <= 0x1F5FF):  # Emojis und andere Piktogramme
+           (0x1F300 <= codepoint <= 0x1F5FF):  # Emojis and other pictograms
             return True
         return False
     
-    # Entferne alle Zeichen aus dem Satz, die als Sonderzeichen identifiziert wurden
-    bereinigter_satz = ''.join(char for char in satz if not ist_sonderzeichen(char))
-    return bereinigter_satz
+    # Remove all characters from the sentence that have been identified as special characters
+    cleaned_sentence = ''.join(char for char in sentence if not is_special_character(char))
+    return cleaned_sentence
+
 
 def tokenize_japanese(text):
-    """
-    Tokenizes Japanese text using MeCab.
 
-    Parameters:
-    - text (str): The Japanese text to be tokenized.
-
-    Returns:
-    - list: A list of tokens extracted from the input text.
-    """
     tokenizer = MeCab.Tagger()
     tokens = []
     node = tokenizer.parseToNode(text)
@@ -58,60 +51,24 @@ def tokenize_japanese(text):
     return tokens
 
 def tokenize_chinese(text):
-    """
-    Tokenizes Chinese text using Jieba.
 
-    Parameters:
-    - text (str): The Chinese text to be tokenized.
-
-    Returns:
-    - list: A list of tokens extracted from the input text.
-    """
     tokens = jieba.cut(text)
     return list(tokens)
 
 
 def tokenize_thai(text):
-    """
-    Tokenizes Thai text using PyThaiNLP.
 
-    Parameters:
-    - text (str): The Thai text to be tokenized.
-
-    Returns:
-    - list: A list of tokens extracted from the input text.
-    """
     tokens = pythainlp.tokenize.word_tokenize(text)
     return tokens
 
 def tokenize_korean(text):
-    """
-    Tokenizes Korean text using Okt from konlpy.
 
-    Parameters:
-    - text (str): The Korean text to be tokenized.
-
-    Returns:
-    - list: A list of tokens extracted from the input text.
-    """
     okt = Okt()
     tokens = okt.morphs(text)
     return tokens
 
 
 def preprocess(sentence, labels):
-    """
-    Preprocesses text data for various languages by applying language-specific tokenization.
-
-    Parameters:
-    - sentence (pd.Series): A pandas Series containing sentences to be preprocessed.
-    - labels (pd.Series): A pandas Series containing labels indicating the language of each sentence.
-
-    Returns:
-    - tuple: A tuple containing two pandas Series: the preprocessed sentences and the original labels.
-
-    The function supports preprocessing for Chinese, Japanese, Thai, and Korean texts. For languages not specifically supported, it defaults to simple whitespace-based tokenization. This preprocessing step is crucial for natural language processing tasks, especially when dealing with languages that do not use whitespace to separate words.
-    """
     corpus = []
     sentence = sentence.to_list()
     labels = labels.to_list()
