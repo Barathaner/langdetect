@@ -136,6 +136,28 @@ def plot_Confusion_Matrix(y_test, y_predict, color="Blues"):
     plt.show()
 
 
+def output_incorrect_predictions(X_data, y_true, y_pred):
+    """
+    Outputs the sentences and their actual and predicted languages for those instances where the prediction was wrong.
+    
+    Parameters:
+    - X_data: The original sentences (pandas Series or similar iterable).
+    - y_true: The actual labels (pandas Series or similar iterable).
+    - y_pred: The predicted labels (list or similar iterable).
+    """
+    print('Incorrect Predictions:')
+    print('======================')
+    for sentence, actual, predicted in zip(X_data, y_true, y_pred):
+        if actual != predicted:
+            print(f"Sentence: {sentence}")
+            print(f"Actual Language: {actual}, Predicted Language: {predicted}")
+            print('----------------------')
+
+# Place this function call after you have predictions from your classifier
+# Make sure to pass the original test set sentences (X_test before any transformations if preprocess changes them), actual labels (y_test), and predicted labels (y_predict)
+
+
+
 
 def plotPCA3D(x_train, x_test, y_test, langs):
     '''

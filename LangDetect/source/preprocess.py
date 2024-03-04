@@ -5,7 +5,15 @@ import pythainlp
 from konlpy.tag import Okt  # Okt is a tokenizer for Korean.
 import jieba
 import random
+from nltk.stem import SnowballStemmer
+import re
 nltk.download('punkt')
+
+
+
+def stem_text(text, stemmer):
+    stemmed_words = [stemmer.stem(word) for word in text]
+    return stemmed_words
 
 def entferne_sonderzeichen(satz):
     # Erweiterte Funktion, die prüft, ob ein Zeichen ein Sonderzeichen ist
@@ -114,6 +122,7 @@ def preprocess(sentence, labels):
     thaicount = 0
     koreancount = 0
     othercount = 0
+    russiancount = 0
     for i in range(len(sentence)):
         processed_sentence =  entferne_sonderzeichen(str(sentence[i].lower())) #entferne_sonderzeichen(sentence[i])
         chinesecount = 0
@@ -121,8 +130,10 @@ def preprocess(sentence, labels):
         thaicount = 0
         koreancount = 0
         othercount = 0
+        russiancount = 0
         #0.2 is the percentage of the sentence that will be randomly selected to determine the language
-        randcount = int(len(processed_sentence) *0.2)
+        randcount = max(int(len(processed_sentence) * 0.8), 1) if len(processed_sentence) > 0 else 0
+        
         randchars = random.sample(range(0, len(processed_sentence)), randcount)
         for randchar in randchars:
             #chinese Basic CJK Unified Ideographs Block and CJK Unified Ideographs Extension A Block
@@ -137,33 +148,41 @@ def preprocess(sentence, labels):
                 #Hangul Syllables: 44032-55215 Hangul Jamo: 4352-4607 Hangul Compatibility Jamo: 43360-43391 Hangul Jamo Extended-B:  55216 bis 55295
             elif 44032 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 55215 or 4352 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 4607 or 43360 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 43391 or 55216 < ord(processed_sentence[randchar]) and ord(processed_sentence[randchar]) < 55295:
                 koreancount += 1
+            elif 1024 <= ord(processed_sentence[randchar]) <= 1279:
+                russiancount += 1
             else:
                 othercount += 1
         
         if max(thaicount, japanesecount, chinesecount, koreancount,othercount) == thaicount:
+            thai_pattern = r'[^\u0E00-\u0E7F\s]+'
+            processed_sentence = re.sub(thai_pattern, '', processed_sentence)
             tokens = tokenize_thai(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == japanesecount:
+            pattern = r'[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\s]+'
+            processed_sentence = re.sub(pattern, '', processed_sentence)
             tokens = tokenize_japanese(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == chinesecount:
+            pattern = r'[^\u3400-\u4DBF\u4E00-\u9FFF\u20000-\u2A6DF\s]+'
+            processed_sentence = re.sub(pattern, '', processed_sentence)
             tokens = tokenize_chinese(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == koreancount:
+            korean_pattern = r'[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F\uD7B0-\uD7FF\s]+'
+            processed_sentence = re.sub(korean_pattern, '', processed_sentence)
             tokens = tokenize_korean(processed_sentence)
+        elif max(thaicount, japanesecount, chinesecount, koreancount,russiancount,othercount) == russiancount:
+            pattern = r'[^\u0410-\u044F\u0401\u0451\s,.!?;:-]'
+            processed_sentence = re.sub(pattern, '', processed_sentence)
+            tokens = nltk.word_tokenize(processed_sentence,language='russian')
+        
         else:
             #other languages are quiet similar to english so we can use the nltk tokenizer
+            
+            #example for english stemming
+            #stemmer = SnowballStemmer("english")
+            #tokens = stem_text(tokens, stemmer)
+            
             tokens = nltk.word_tokenize(processed_sentence)
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-        # this is stupid but it works. normally we would need to add new labels for each word in the sentence but we are not doing that here
-        # Keep in mind that sentence splitting affectes the number of sentences
-        # and therefore, you should replicate labels to match. like this.... but for some strange reason it performs really bad.... (maybe the special chcaracters)
-        #   for k in range(len(tokens)):
-        #    corpus.append(tokens[k])
-        #    labelcorpus.append(labels[i])
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-        
         processed_sentence = ' '.join(tokens)
-
-        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 
         corpus.append(processed_sentence)
         

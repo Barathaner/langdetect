@@ -44,12 +44,16 @@ if __name__ == "__main__":
     print('Test:', len(X_test))
     print('========')
     
+    
+    
     # Preprocess text (Word granularity only)
     if args.analyzer == 'word':
         X_train, y_train = preprocess(X_train,y_train)
         X_test, y_test = preprocess(X_test,y_test)
 
     #Compute text features
+    x_test_copy = X_test.copy()
+
     features, X_train_raw, X_test_raw = compute_features(X_train, 
                                                             X_test, 
                                                             analyzer=args.analyzer, 
@@ -65,8 +69,10 @@ if __name__ == "__main__":
     X_train, X_test = normalizeData(X_train_raw, X_test_raw)
     #y_predict = applyKNN(X_train, y_train, X_test)
     #y_predict = applySVM(X_train, y_train, X_test)
-    #y_predict = applyNaiveBayes(X_train, y_train,X_test)
-    y_predict = applyRandomForest(X_train, y_train,X_test)
+    y_predict = applyNaiveBayes(X_train, y_train,X_test)
+    #y_predict = applyRandomForest(X_train, y_train,X_test)
+    
+    output_incorrect_predictions(x_test_copy, y_test, y_predict)
     
     print('========')
     print('Prediction Results:')    
@@ -74,7 +80,6 @@ if __name__ == "__main__":
     print('========')
     
     plot_Confusion_Matrix(y_test, y_predict, "Greens") 
-
 
     #Plot PCA
     print('========')
