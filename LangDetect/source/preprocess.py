@@ -154,19 +154,19 @@ def preprocess(sentence, labels):
                 othercount += 1
         
         if max(thaicount, japanesecount, chinesecount, koreancount,othercount) == thaicount:
-            thai_pattern = r'[^\u0E00-\u0E7F\s]+'
+            thai_pattern = r'[^\u0E00-\u0E7F\s,.!?;:-]+'
             processed_sentence = re.sub(thai_pattern, '', processed_sentence)
             tokens = tokenize_thai(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == japanesecount:
-            pattern = r'[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\s]+'
+            pattern = r'[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\s,.!?;:-]+'
             processed_sentence = re.sub(pattern, '', processed_sentence)
             tokens = tokenize_japanese(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == chinesecount:
-            pattern = r'[^\u3400-\u4DBF\u4E00-\u9FFF\u20000-\u2A6DF\s]+'
+            pattern = r'[^\u3400-\u4DBF\u4E00-\u9FFF\u20000-\u2A6DF\s,.!?;:-]+'
             processed_sentence = re.sub(pattern, '', processed_sentence)
             tokens = tokenize_chinese(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,othercount) == koreancount:
-            korean_pattern = r'[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F\uD7B0-\uD7FF\s]+'
+            korean_pattern = r'[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F\uD7B0-\uD7FF\s,.!?;:-]+'
             processed_sentence = re.sub(korean_pattern, '', processed_sentence)
             tokens = tokenize_korean(processed_sentence)
         elif max(thaicount, japanesecount, chinesecount, koreancount,russiancount,othercount) == russiancount:
